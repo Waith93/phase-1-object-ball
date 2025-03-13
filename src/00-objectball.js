@@ -1,3 +1,4 @@
+const match = gameObject()
 function gameObject() {
     let obj = {
         home : {
@@ -120,127 +121,86 @@ function gameObject() {
 console.log(gameObject())
 
 function getPlayerNumber(name) {
-    let object = gameObject();
-    if(object.home.players[name]){
-        return object.home.players[name].number
-    }else if(object.away.players[name]) {
-        return object.away.players[name].number
-    }else 
-         return 'No player with that name found';
+    return match.home.players[name]?.number || match.away.players[name]?.number || "No player with that name found";
 }
 console.log(getPlayerNumber("Jason Terry"))
 
 function numPointsScored(name) {
-    let object = gameObject();
-    if(object.home.players[name]){
-       return object.home.players[name].points
-    }else if(object.away.players[name]){
-        return object.away.players[name].points
-    }else
-        return 'No player with that name found';
+    return match.home.players[name]?.points || match.away.players[name]?.points || "No player with that name found";
 }
 console.log(numPointsScored("Jason Terry"))
+console.log(numPointsScored("Matthew Jones"))
 
 function shoeSize(name) {
-    let object = gameObject();
-    if (object.home.players[name]) {
-        return object.home.players[name].shoe;
-    } else if (object.away.players[name]) {
-        return object.away.players[name].shoe;
-    } else 
-        return "No player with that name found";
+    return match.home.players[name]?.shoe || match.away.players[name]?.shoe || "No player with that name found";
 }
 console.log(shoeSize("Jason Terry"))
 
 function teamColors(teamName) {
-    let object = gameObject();
-    if(object.home.teamName === teamName) {
-        return object.home.colors;
-    }else if(object.away.teamName === teamName) {
-        return object.away.colors;
-    }else 
-        return 'No team with that name found';
+    for (let team in match) {
+        if(match[team].teamName === teamName){
+            return match[team].colors;
+        }
+    }
 }
 console.log(teamColors("Charlotte Hornets"))
 
 function teamName() {
-    let object = gameObject();
-    return [object.home.teamName, object.away.teamName]
+
+    return [match.home.teamName, match.away.teamName]
 }
 console.log(teamName())
 
 function playerNumbers(teamName) {
-    let object = gameObject();
-    if (object.home.teamName === teamName) {
-        team = object.home;
-    } else if (object.away.teamName === teamName) {
-        team = object.away;
-    } else {
-        return "No team with that name found";
-    }
-
-    return Object.values(team.players).map(player => player.number);
+    const team = match.home.teamName === teamName ? match.home
+        : match.away.teamName === teamName ? match.away
+        : null;
+    return team ? Object.values(team.players).map(player => player.number) : "No team with that name found";
 }
 console.log(playerNumbers("Brooklyn Nets"))
 
 function playerStats(name) {
-    let object = gameObject();
-    if(object.home.players[name]) {
-        return object.home.players[name]
-    }else if(object.away.players[name]) {
-        return object.away.players[name]
-    }else
-        return 'No player with that name found';
+    return match.home.players[name] || match.away.players[name] || "No player with that name found";
 }
 console.log(playerStats("Bismak Biyombo"))
 
 function bigShoeRebounds() {
-    let object = gameObject();
-    let largestShoeSize = 0;
+    let largestShoeSize = 0, playerWithLargestShoe = "", rebounds = 0;
 
-    for (let team of [object.home, object.away]) {
-        for (let player in team.players) {
-            let playerData = team.players[player];
-
-            
-            if (playerData.shoe > largestShoeSize) {
-                largestShoeSize = playerData.shoe;
-                rebounds = playerData.rebounds;
+    function checkPlayers(players) {
+        for (const playerName in players) {
+            if (players[playerName].shoe > largestShoeSize) {
+                largestShoeSize = players[playerName].shoe;
+                playerWithLargestShoe = playerName;
+                rebounds = players[playerName].rebounds;
             }
         }
     }
 
-    return rebounds;
+    checkPlayers(match.home.players);
+    checkPlayers(match.away.players);
+
+    return `${playerWithLargestShoe} has the largest shoe size of ${largestShoeSize} and recorded ${rebounds} rebounds.`;
 }
-console.log(bigShoeRebounds())
+
+console.log(bigShoeRebounds());
 
 function winningTeam() {
-    let object = gameObject();
     let scores = { home: 0, away: 0 };
-
-    for (let team of [object.home, object.away]) {
-        for (let player in team.players) {
-            scores[team] += team.players[player].points;
-        }
-    }
-     if(scores.home > scores.away) {
-        return object.home.teamName
-     }else 
-        return object.away.teamName
-    
-}
+    return scores.home > scores.away ? match.home.teamName : match.away.teamName;
+}  
 console.log(winningTeam())
 
 function mostPointsScored() {
-    let object = gameObject();
-    let maxPoints = 0;
-    let topPlayer = "";
+    let maxPoints = 0, topPlayer = "";
 
-    for (let team of [object.home, object.away]) {
-        for (let player in team.players) {
-            if (team.players[player].points > maxPoints) {
-                maxPoints = team.players[player].points;
+    for (let team in match) {
+        let players = match[team].players
+        for (let player in players) {
+            if (players[player].points > maxPoints) {
+                maxPoints = players[player].points;
                 topPlayer = player;
+                teamName = match[team].teamName;
             }
         }
     }
@@ -249,10 +209,9 @@ function mostPointsScored() {
 console.log(mostPointsScored())
 
 function playerWithLongestName() {
-    let object = gameObject();
     let longestName = "";
 
-    for(let team of [object.home, object.away]) {
+    for(let team of [match.home, match.away]) {
         for(let player in team.players){
             if (player.length > longestName.length) {
                 longestName = player;
@@ -264,18 +223,20 @@ function playerWithLongestName() {
 console.log(playerWithLongestName())
 
 function doesLongNameStealATon() {
-    let object = gameObject();
-    let longestName = playerWithLongestName();
-    let mostSteals = 0;
-    let longNameSteals = 0;
-    
-    for(let team of[object.home, object.away]) {
-        for(let player in team.players){
-            if(team.players[player].steals > mostSteals){
-                 mostSteals = team.players[player].steals;
+    const longestName = playerWithLongestName();
+    let mostSteals = 0, longNameSteals = 0;
+
+    for (const team of [match.home, match.away]) {
+        for (const player in team.players) {
+            if (team.players[player].steals > mostSteals) {
+                mostSteals = team.players[player].steals;
+            }
+            if (player === longestName) {
+                longNameSteals = team.players[player].steals;
             }
         }
     }
     return longNameSteals === mostSteals;
 }
+
 console.log(doesLongNameStealATon())
